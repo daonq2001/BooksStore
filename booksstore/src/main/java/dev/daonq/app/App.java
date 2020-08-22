@@ -1,10 +1,18 @@
 package dev.daonq.app;
 
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 import dev.daonq.BusinessLogic.BookBL;
+import dev.daonq.BusinessLogic.CustomerBL;
+import dev.daonq.BusinessLogic.OrderBL;
+import dev.daonq.BusinessLogic.OrderDetailBL;
 import dev.daonq.Entity.Book;
+import dev.daonq.Entity.Customer;
+import dev.daonq.Entity.Order;
 import dev.daonq.Entity.OrderDetail;
 
 public class App {
@@ -17,10 +25,15 @@ public class App {
             ArrayList<OrderDetail> listOrderDetails = new ArrayList<>();
 
             String choice;
+
             int from = 0, to = 10;
 
+            Boolean login = false;
+
+            Customer customer = null;
+
             do {
-                nextPage(from, to, bookBL, listOrderDetails);
+                nextPage(from, to, listOrderDetails);
                 choice = sc.nextLine();
                 switch (choice) {
 
@@ -144,11 +157,107 @@ public class App {
                         break;
 
                     case "G":
-                        viewOrderDetail(listOrderDetails);
+                    case "g":
+                        try {
+                            String choiceG;
+                            do {
+                                viewOrderDetail(listOrderDetails);
+                                choiceG = sc.nextLine();
+                                switch (choiceG) {
+                                    case "1":
+                                        try {
+                                            byte check = 0;
+                                            System.out.printf("Nhập ID: ");
+                                            int ID = Integer.parseInt(sc.nextLine());
+                                            for (int i = 0; i < listOrderDetails.size(); i++) {
+                                                if (ID == listOrderDetails.get(i).getBookID()) {
+                                                    listOrderDetails.remove(i);
+                                                    System.out.println("Xóa khỏi giỏ hàng thành công.");
+                                                    check = 1;
+                                                    break;
+                                                }
+                                            }
+                                            if (check == 0) {
+                                                System.out
+                                                        .println("Rất tiếc! Chúng tôi không tìm thấy ID bạn vừa nhập.");
+                                            } else if (check == 1 && listOrderDetails.size() == 0) {
+                                                choiceG = "0";
+                                            }
+                                        } catch (Exception e) {
+                                            System.out.println("Đã có lỗi xảy ra trong quá trình xóa khỏi giỏ hàng.");
+                                        }
+                                        break;
+                                    case "2":
+                                        try {
+                                            byte check = 0;
+                                            System.out.printf("Nhập ID: ");
+                                            int ID = Integer.parseInt(sc.nextLine());
+                                            for (int i = 0; i < listOrderDetails.size(); i++) {
+                                                if (ID == listOrderDetails.get(i).getBookID()) {
+                                                    System.out.printf("Nhập số lượng mới (1..20): ");
+                                                    int slm = Integer.parseInt(sc.nextLine());
+                                                    if (slm >= 1 && slm <= 20) {
+                                                        listOrderDetails.get(i).setAmount(slm);
+                                                        System.out.println("Cập nhật số lượng thành công.");
+                                                    } else {
+                                                        System.out.println("Cập nhật số lượng thất bại.");
+                                                    }
+                                                    check = 1;
+                                                    break;
+                                                }
+                                            }
+                                            if (check == 0) {
+                                                System.out
+                                                        .println("Rất tiếc! Chúng tôi không tìm thấy ID bạn vừa nhập.");
+                                            }
+                                        } catch (Exception e) {
+                                            System.out.println("Đã có lỗi xảy ra trong quá trình cập nhật số lượng.");
+                                        }
+                                        break;
+                                    case "0":
+
+                                        break;
+                                    default:
+                                        System.out.println("Không có kết quả phù hợp với lựa chọn của bạn.");
+                                        break;
+                                }
+                            } while (!choiceG.equals("0"));
+                        } catch (Exception e) {
+                            System.out.println("Đã xảy ra lỗi trong quá trình chỉnh sửa giỏ hàng.");
+                        }
                         break;
 
                     case "L":
+                    case "l":
+                        if (login) {
+                            viewHistories(customer, sc);
+                        } else {
+                            String yon;
+                            do {
+                                System.out.printf(
+                                        "Bạn cần đăng nhập để thực hiện chức năng này? [1: Đăng nhập] [0: Trở về] => ");
+                                yon = sc.nextLine();
+                                switch (yon) {
+                                    case "1":
+                                        customer = Login(sc);
+                                        if (customer != null) {
+                                            System.out.println("Đăng nhập thành công.");
+                                            login = true;
+                                            viewHistories(customer, sc);
+                                        } else {
+                                            System.out.println("Đăng nhập thất bại.");
+                                            yon = "0";
+                                        }
+                                        break;
+                                    case "0":
 
+                                        break;
+                                    default:
+                                        System.out.println("Không có kết quả phù hợp với lựa chọn của bạn.");
+                                        break;
+                                }
+                            } while (!yon.equals("0"));
+                        }
                         break;
 
                     case "D":
@@ -171,6 +280,103 @@ public class App {
         }
     }
 
+    private static void viewHistories(Customer customer, Scanner sc) {
+        try {
+
+            OrderBL bl = new OrderBL();
+            OrderDetailBL orderDetailBL = new OrderDetailBL();
+            BookBL bookBL = new BookBL();
+            ArrayList<Order> listOrders = bl.getListOrderByCustomerID(customer.getID());
+            if (listOrders != null) {
+                ArrayList<OrderDetail> orderDetails = null;
+                System.out.printf("\nĐƠN HÀNG CỦA BẠN");
+                System.out.printf("| %-5s | %-30s | %-100s | %-15s |\n", "ID", "Ngày đặt hàng", "Sản phẩm",
+                        "Tổng tiền");
+                for (int i = 0; i < listOrders.size(); i++) {
+                    orderDetails = orderDetailBL.getListOrderDetailByOrderID(listOrders.get(i).getID());
+                    String sanpham = "";
+                    if (orderDetails.size() > 1) {
+                        Book book = bookBL.getBookByID(orderDetails.get(0).getBookID());
+                        if (book != null) {
+                            sanpham = book.getTitle() + "... và " + orderDetails.size() + "sản phẩm khác.";
+                        }
+                    } else if (orderDetails.size() == 1) {
+                        Book book = bookBL.getBookByID(orderDetails.get(0).getBookID());
+                        if (book != null) {
+                            sanpham = book.getTitle();
+                        }
+                    }
+                    System.out.printf("| %-5d | %-30s | %-100s | %-15s |\n", listOrders.get(i).getID(),
+                            listOrders.get(i).getDate(), sanpham, listOrders.get(i).getTotalDue());
+                }
+
+                byte check = 0;
+                System.out.printf("Nhập ID: ");
+                int ID = Integer.parseInt(sc.nextLine());
+                for (int i = 0; i < listOrders.size(); i++) {
+                    if(ID == listOrders.get(i).getID()){
+                        orderDetails = orderDetailBL.getListOrderDetailByOrderID(ID);
+                        viewInvoice(orderDetails, customer, listOrders.get(i));
+                        check = 1;
+                        break;
+                    }
+                }
+                if(check == 0){
+                    System.out.println("Rất tiếc! Chúng tôi không tìm thấy ID bạn vừa nhập.");
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Đã xảy ra lỗi trong quá trình xem lịch sử đơn hàng.");
+        }
+    }
+
+    private static void viewInvoice(ArrayList<OrderDetail> listOrderDetails, Customer customer, Order order){
+        System.out.printf("\nTHÔNG TIN HÓA ĐƠN");
+        System.out.printf("");
+    }
+
+    private static Customer Login(Scanner sc) {
+        System.out.printf("\nĐĂNG NHẬP\n");
+        System.out.printf("Email: ");
+        String Email = sc.nextLine();
+        java.io.Console console = System.console();
+        char[] passwordArray = console.readPassword("Mật khẩu: ");
+        String Password = new String(passwordArray);
+        Password = MD5(Password);
+        CustomerBL bl = new CustomerBL();
+        Customer customer = bl.getCustomerByEmail(Email);
+        if (customer != null && customer.getPassword().equals(Password)) {
+            return customer;
+        }
+        return null;
+    }
+
+    private static String MD5(String Password) {
+        try {
+            // Static getInstance method is called with hashing MD5
+            MessageDigest md = MessageDigest.getInstance("MD5");
+
+            // digest() method is called to calculate message digest
+            // of an input digest() return array of byte
+            byte[] messageDigest = md.digest(Password.getBytes());
+
+            // Convert byte array into signum representation
+            BigInteger no = new BigInteger(1, messageDigest);
+
+            // Convert message digest into hex value
+            String hashtext = no.toString(16);
+            while (hashtext.length() < 32) {
+                hashtext = "0" + hashtext;
+            }
+            return hashtext;
+        }
+
+        // For specifying wrong message digest algorithms
+        catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static void viewOrderDetail(ArrayList<OrderDetail> listOrderDetails) {
         if (listOrderDetails.size() > 0) {
             BookBL bookBL = new BookBL();
@@ -180,22 +386,21 @@ public class App {
                     "\n|                                             CHI TIẾT GIỎ HÀNG                                                   |");
             System.out.printf(
                     "\n*******************************************************************************************************************");
-            System.out.printf("\n| %-4s | %-60s | %-10s | %-10s | %-1s |", "ID", "Tên sách", "Giá (VNĐ)", "Số lượng",
+            System.out.printf("\n| %-4s | %-60s | %-10s | %-10s | %-15s |", "ID", "Tên sách", "Giá (VNĐ)", "Số lượng",
                     "Tạm tính (VNĐ)");
             Book book = null;
             for (int i = 0; i < listOrderDetails.size(); i++) {
                 book = bookBL.getBookByID(listOrderDetails.get(i).getBookID());
                 System.out.printf(
                         "\n-------------------------------------------------------------------------------------------------------------------");
-                System.out.printf("\n| %-4d | %-60s | %-10.3f | %-10d | %-1.3f |\n", book.getID(), book.getTitle(),
+                System.out.printf("\n| %-4d | %-60s | %-10.3f | %-10d | %-15.3f |\n", book.getID(), book.getTitle(),
                         book.getPrice(), listOrderDetails.get(i).getAmount(),
                         book.getPrice() * listOrderDetails.get(i).getAmount());
-
             }
             System.out.printf(
                     "*******************************************************************************************************************");
-            System.out.printf("\n[1: Xóa] [2: Cập nhật số lượng] [0: Trở về] => ");
-        } else{
+            System.out.printf("\n[1: Xóa khỏi giỏ hàng] [2: Cập nhật số lượng] [0: Trở về] => ");
+        } else {
             System.out.println("Giỏ hàng của bạn hiện tại trống.");
         }
     }
@@ -240,7 +445,8 @@ public class App {
         System.out.printf("[1: Thêm vào giỏ hàng] [0: Trở về] => ");
     }
 
-    private static void nextPage(int from, int to, BookBL bookBL, ArrayList<OrderDetail> listOrderDetail) {
+    private static void nextPage(int from, int to, ArrayList<OrderDetail> listOrderDetail) {
+        BookBL bookBL = new BookBL();
         ArrayList<Book> books = bookBL.getListBook();
         System.out.printf(
                 "\n*********************************************************************************************************************");
