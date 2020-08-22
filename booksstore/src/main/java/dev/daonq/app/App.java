@@ -251,6 +251,7 @@ public class App {
                                             yon = "0";
                                         } else {
                                             System.out.println("Đăng nhập thất bại.");
+                                            pressEnter(sc);
                                             yon = "0";
                                         }
                                         break;
@@ -273,8 +274,7 @@ public class App {
                             } else {
                                 String yon;
                                 do {
-                                    System.out.printf(
-                                            "Bạn cần đăng nhập để thực hiện chức năng này? [1: Đăng nhập] [0: Trở về] => ");
+                                    System.out.printf("Bạn cần đăng nhập để thực hiện chức năng này? [1: Đăng nhập] [0: Trở về] => ");
                                     yon = sc.nextLine();
                                     switch (yon) {
                                         case "1":
@@ -283,9 +283,11 @@ public class App {
                                                 System.out.println("Đăng nhập thành công.");
                                                 login = true;
                                                 datHang(listOrderDetails, sc, customer);
+                                                pressEnter(sc);
                                                 yon = "0";
                                             } else {
                                                 System.out.println("Đăng nhập thất bại.");
+                                                pressEnter(sc);
                                                 yon = "0";
                                             }
                                             break;
@@ -300,6 +302,7 @@ public class App {
                             }
                         } else {
                             System.out.println("Không thể đặt hàng vì giỏ hàng trống.");
+                            pressEnter(sc);
                         }
                         break;
 
@@ -310,6 +313,7 @@ public class App {
 
                     default:
                         System.out.println("Không có kết quả phù hợp với lựa chọn của bạn.");
+                        pressEnter(sc);
                         break;
                 }
             } while (!choice.equals("T"));
@@ -317,6 +321,11 @@ public class App {
         } catch (Exception e) {
             System.out.printf("Máy chủ bị lỗi hoặc mất sóng!");
         }
+    }
+
+    private static void pressEnter(Scanner sc){
+        System.out.println("Nhấn Enter để tiếp tục...");
+        sc.nextLine();
     }
 
     private static void cls() throws InterruptedException, IOException {
@@ -340,7 +349,7 @@ public class App {
                 orderDetailBL.insertOrderDetail(listOrderDetails.get(i));
             }
             viewInvoice(listOrderDetails, customer, order);
-            listOrderDetails = null;
+            listOrderDetails.clear();
         } catch (Exception e) {
             System.out.println("Đã có lỗi xảy ra trong quá trình đặt hàng.");
         }
@@ -355,7 +364,7 @@ public class App {
             if (listOrders.size() > 0) {
                 ArrayList<OrderDetail> orderDetails = null;
                 System.out.printf("\nĐƠN HÀNG CỦA BẠN");
-                System.out.printf("\n| %-5s | %-20s | %-84s | %-15s |\n", "ID", "Ngày đặt hàng", "Sản phẩm",
+                System.out.printf("\n| %-5s | %-21s | %-84s | %-15s |\n", "ID", "Ngày đặt hàng", "Sản phẩm",
                         "Tổng tiền");
                 for (int i = 0; i < listOrders.size(); i++) {
                     orderDetails = orderDetailBL.getListOrderDetailByOrderID(listOrders.get(i).getID());
@@ -363,7 +372,7 @@ public class App {
                     if (orderDetails.size() > 1) {
                         Book book = bookBL.getBookByID(orderDetails.get(0).getBookID());
                         if (book != null) {
-                            sanpham = book.getTitle() + "... và " + orderDetails.size() + "sản phẩm khác.";
+                            sanpham = book.getTitle() + "... và " + (orderDetails.size() - 1) + " sản phẩm khác.";
                         }
                     } else if (orderDetails.size() == 1) {
                         Book book = bookBL.getBookByID(orderDetails.get(0).getBookID());
@@ -371,7 +380,7 @@ public class App {
                             sanpham = book.getTitle();
                         }
                     }
-                    System.out.printf("| %-5d | %-20s | %-84s | %-15s |\n", listOrders.get(i).getID(),
+                    System.out.printf("| %-5d | %-21s | %-84s | %-15s |\n", listOrders.get(i).getID(),
                             listOrders.get(i).getDate(), sanpham, listOrders.get(i).getTotalDue());
                 }
 
@@ -383,14 +392,17 @@ public class App {
                         orderDetails = orderDetailBL.getListOrderDetailByOrderID(ID);
                         viewInvoice(orderDetails, customer, listOrders.get(i));
                         check = 1;
+                        pressEnter(sc);
                         break;
                     }
                 }
                 if (check == 0) {
                     System.out.println("Rất tiếc! Chúng tôi không tìm thấy ID bạn vừa nhập.");
+                    pressEnter(sc);
                 }
             } else {
                 System.out.println("Lịch sử mua hàng trống.");
+                pressEnter(sc);
             }
         } catch (Exception e) {
             System.out.println("Đã xảy ra lỗi trong quá trình xem lịch sử đơn hàng.");
@@ -399,6 +411,7 @@ public class App {
 
     private static void viewInvoice(ArrayList<OrderDetail> listOrderDetails, Customer customer, Order order) {
         try {
+            cls();
             System.out.println("\nTHÔNG TIN HÓA ĐƠN");
             System.out.println("Khách hàng:    " + customer.getName());
             System.out.println("Email:         " + customer.getEmail());
@@ -414,15 +427,13 @@ public class App {
             BookBL bookBL = new BookBL();
             for (int i = 0; i < listOrderDetails.size(); i++) {
                 l = bookBL.getBookByID(listOrderDetails.get(i).getBookID());
-                System.out.printf("\n| %-4d | %-60s | %-9.3f₫ | %-10d | %-14.3f₫ |\n", i, l.getTitle(), l.getPrice(),
+                System.out.printf("\n| %-4d | %-60s | %-9.3f | %-10d | %-14.3f |\n", i, l.getTitle(), l.getPrice(),
                         listOrderDetails.get(i).getAmount(), l.getPrice() * listOrderDetails.get(i).getAmount());
                 thanhtien = thanhtien + (l.getPrice() * listOrderDetails.get(i).getAmount());
             }
             System.out.printf("\n|Thành tiền: %-80.3f|", order.getTotalDue());
-            System.out.println();
-
         } catch (Exception e) {
-            System.out.println("Đã xảy ra lỗi! Đặt hàng thất bại.");
+            System.out.println("Đã xảy ra lỗi khi xem hóa đơn.");
         }
     }
 
@@ -492,7 +503,7 @@ public class App {
             }
             System.out.printf(
                     "\n-------------------------------------------------------------------------------------------------------------------");
-            System.out.printf("| Thành tiền: %.3f", thanhtien);
+            System.out.printf("\n| Thành tiền: %.3f", thanhtien);
             System.out.printf(
                     "\n*******************************************************************************************************************");
             System.out.printf("\n[1: Xóa khỏi giỏ hàng] [2: Cập nhật số lượng] [0: Trở về] => ");
