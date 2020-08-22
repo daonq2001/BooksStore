@@ -37,9 +37,7 @@ public class OrderDA implements OrderDAO {
             ResultSet rs = DBHelper.executeQuery(sql);
             Order order = new Order();
             while (rs.next()) {
-                order.setID(rs.getInt("ID"));
-                order.setCustomerID(rs.getInt("CustomerID"));
-                order.setDate(rs.getTimestamp("Date"));
+                order = getOrder(rs);
             }
             DBHelper.closeConnection();
             return order;

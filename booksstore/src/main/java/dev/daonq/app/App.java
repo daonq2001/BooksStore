@@ -333,6 +333,8 @@ public class App {
                     listOrderDetails.get(i).setOrderID(order.getID());
                     orderDetailBL.insertOrderDetail(listOrderDetails.get(i));
                 }
+                viewInvoice(listOrderDetails, customer, order);
+                listOrderDetails = null;
             } else {
                 System.out.println("Bạn không đủ tiền để mua.");
             }
@@ -414,7 +416,7 @@ public class App {
                         listOrderDetails.get(i).getAmount(), l.getPrice() * listOrderDetails.get(i).getAmount());
                 thanhtien = thanhtien + (l.getPrice() * listOrderDetails.get(i).getAmount());
             }
-            System.out.printf("\n|Thành tiền: %f-80.3f|", order.getTotalDue());
+            System.out.printf("\n|Thành tiền: %-80.3f|", order.getTotalDue());
             System.out.println();
             
         } catch (Exception e) {
