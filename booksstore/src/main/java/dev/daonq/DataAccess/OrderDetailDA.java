@@ -1,5 +1,7 @@
 package dev.daonq.DataAccess;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 
@@ -10,8 +12,22 @@ public class OrderDetailDa implements OrderDetailDAO {
 
     @Override
     public Boolean insertOrderDetail(OrderDetail orderDetail) {
-
-        return null;
+        try {
+            Connection con = DBHelper.getConnection();
+            DBHelper.executeQuery("SET FOREIGN_KEY_CHECKS = 0;");
+            String sql = "INSERT INTO OrderDetails(BookID, OrderID, Amount) values (?, ?, ?);";
+            PreparedStatement preparedStatement = con.prepareStatement(sql);
+            preparedStatement.setInt(1, orderDetail.getBookID());
+            preparedStatement.setInt(2, orderDetail.getOrderID());
+            preparedStatement.setInt(3, orderDetail.getAmount());
+            Boolean b = preparedStatement.execute();
+            DBHelper.executeQuery("SET FOREIGN_KEY_CHECKS = 1;");
+            DBHelper.closeConnection();
+            return b;
+        } catch (Exception e) {
+            System.out.println("Đã có lỗi xảy ra trong quá trình thêm dữ liệu vào bảng OrderDetail.");
+            return false;
+        }
     }
 
     @Override

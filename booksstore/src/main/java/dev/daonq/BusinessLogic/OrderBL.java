@@ -20,4 +20,11 @@ public class OrderBL {
             return null;
         }
     }
+
+    public Boolean insertOrder(int CustomerID, Double thanhtien) {
+        return da.insertOrder(CustomerID, thanhtien);
+    }
+    public Order getOrderByCustomerID(int CustomerID) {
+        return da.getOrderByCustomerID(CustomerID);
+    }
 }

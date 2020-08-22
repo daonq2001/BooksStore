@@ -20,4 +20,8 @@ public class OrderDetailBL {
             return null;
         }
     }
+
+    public Boolean insertOrderDetail(OrderDetail orderDetail) {
+        return da.insertOrderDetail(orderDetail);
+    }
 }
