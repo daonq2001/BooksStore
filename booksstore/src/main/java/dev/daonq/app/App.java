@@ -1,5 +1,6 @@
 package dev.daonq.app;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -33,6 +34,7 @@ public class App {
             Customer customer = null;
 
             do {
+                cls();
                 nextPage(from, to, listOrderDetails);
                 choice = sc.nextLine();
                 switch (choice) {
@@ -96,6 +98,7 @@ public class App {
                             if (book != null) {
                                 String choiceC;
                                 do {
+                                    cls();
                                     viewBookDetail(book);
                                     choiceC = sc.nextLine();
                                     switch (choiceC) {
@@ -158,11 +161,11 @@ public class App {
 
                     case "G":
                     case "g":
+                        cls();
                         try {
                             String choiceG;
                             do {
                                 viewOrderDetail(listOrderDetails);
-                                    
                                 choiceG = sc.nextLine();
                                 switch (choiceG) {
                                     case "1":
@@ -245,6 +248,7 @@ public class App {
                                             System.out.println("Đăng nhập thành công.");
                                             login = true;
                                             viewHistories(customer, sc);
+                                            yon = "0";
                                         } else {
                                             System.out.println("Đăng nhập thất bại.");
                                             yon = "0";
@@ -262,6 +266,7 @@ public class App {
                         break;
 
                     case "D":
+                        cls();
                         if (listOrderDetails.size() > 0) {
                             if (login) {
                                 datHang(listOrderDetails, sc, customer);
@@ -299,6 +304,7 @@ public class App {
                         break;
 
                     case "T":
+                        cls();
                         System.out.printf("Cảm ơn bạn vì đã sử dụng phần mềm của chúng tôi.");
                         break;
 
@@ -313,34 +319,31 @@ public class App {
         }
     }
 
+    private static void cls() throws InterruptedException, IOException {
+        new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+    }
+
     private static void datHang(ArrayList<OrderDetail> listOrderDetails, Scanner sc, Customer customer) {
         try {
             BookBL bookBL = new BookBL();
-            System.out.printf("Bạn có bao nhiêu tiền: ");
-            Double money = Double.parseDouble(sc.nextLine());
             Double thanhtien = 0.0;
             for (int i = 0; i < listOrderDetails.size(); i++) {
                 Book book = bookBL.getBookByID(listOrderDetails.get(i).getBookID());
                 thanhtien += listOrderDetails.get(i).getAmount() * book.getPrice();
             }
-            if(money >= thanhtien){
-                OrderBL orderBL = new OrderBL();
-                orderBL.insertOrder(customer.getID(), thanhtien);
-                OrderDetailBL orderDetailBL = new OrderDetailBL();
-                Order order = orderBL.getOrderByCustomerID(customer.getID());
-                for (int i = 0; i < listOrderDetails.size(); i++) {
-                    listOrderDetails.get(i).setOrderID(order.getID());
-                    orderDetailBL.insertOrderDetail(listOrderDetails.get(i));
-                }
-                viewInvoice(listOrderDetails, customer, order);
-                listOrderDetails = null;
-            } else {
-                System.out.println("Bạn không đủ tiền để mua.");
+            OrderBL orderBL = new OrderBL();
+            orderBL.insertOrder(customer.getID(), thanhtien);
+            OrderDetailBL orderDetailBL = new OrderDetailBL();
+            Order order = orderBL.getOrderByCustomerID(customer.getID());
+            for (int i = 0; i < listOrderDetails.size(); i++) {
+                listOrderDetails.get(i).setOrderID(order.getID());
+                orderDetailBL.insertOrderDetail(listOrderDetails.get(i));
             }
+            viewInvoice(listOrderDetails, customer, order);
+            listOrderDetails = null;
         } catch (Exception e) {
             System.out.println("Đã có lỗi xảy ra trong quá trình đặt hàng.");
         }
-
     }
 
     private static void viewHistories(Customer customer, Scanner sc) {
@@ -352,7 +355,7 @@ public class App {
             if (listOrders.size() > 0) {
                 ArrayList<OrderDetail> orderDetails = null;
                 System.out.printf("\nĐƠN HÀNG CỦA BẠN");
-                System.out.printf("| %-5s | %-30s | %-100s | %-15s |\n", "ID", "Ngày đặt hàng", "Sản phẩm",
+                System.out.printf("\n| %-5s | %-20s | %-84s | %-15s |\n", "ID", "Ngày đặt hàng", "Sản phẩm",
                         "Tổng tiền");
                 for (int i = 0; i < listOrders.size(); i++) {
                     orderDetails = orderDetailBL.getListOrderDetailByOrderID(listOrders.get(i).getID());
@@ -368,7 +371,7 @@ public class App {
                             sanpham = book.getTitle();
                         }
                     }
-                    System.out.printf("| %-5d | %-30s | %-100s | %-15s |\n", listOrders.get(i).getID(),
+                    System.out.printf("| %-5d | %-20s | %-84s | %-15s |\n", listOrders.get(i).getID(),
                             listOrders.get(i).getDate(), sanpham, listOrders.get(i).getTotalDue());
                 }
 
@@ -417,7 +420,7 @@ public class App {
             }
             System.out.printf("\n|Thành tiền: %-80.3f|", order.getTotalDue());
             System.out.println();
-            
+
         } catch (Exception e) {
             System.out.println("Đã xảy ra lỗi! Đặt hàng thất bại.");
         }
@@ -482,14 +485,16 @@ public class App {
                 book = bookBL.getBookByID(listOrderDetails.get(i).getBookID());
                 System.out.printf(
                         "\n-------------------------------------------------------------------------------------------------------------------");
-                System.out.printf("\n| %-4d | %-60s | %-10.3f | %-10d | %-15.3f |\n", book.getID(), book.getTitle(),
+                System.out.printf("\n| %-4d | %-60s | %-10.3f | %-10d | %-15.3f |", book.getID(), book.getTitle(),
                         book.getPrice(), listOrderDetails.get(i).getAmount(),
                         book.getPrice() * listOrderDetails.get(i).getAmount());
                 thanhtien += book.getPrice() * listOrderDetails.get(i).getAmount();
             }
-            System.out.printf("Thành tiền: %.3f", thanhtien);
             System.out.printf(
-                    "*******************************************************************************************************************");
+                    "\n-------------------------------------------------------------------------------------------------------------------");
+            System.out.printf("| Thành tiền: %.3f", thanhtien);
+            System.out.printf(
+                    "\n*******************************************************************************************************************");
             System.out.printf("\n[1: Xóa khỏi giỏ hàng] [2: Cập nhật số lượng] [0: Trở về] => ");
         } else {
             System.out.println("Giỏ hàng của bạn hiện tại trống.");
