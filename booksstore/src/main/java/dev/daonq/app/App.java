@@ -17,7 +17,13 @@ import dev.daonq.Entity.Order;
 import dev.daonq.Entity.OrderDetail;
 
 public class App {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws NoSuchFieldException, SecurityException, IllegalArgumentException,
+            IllegalAccessException {
+        System.setProperty("file.encoding", "UTF-8");
+        java.lang.reflect.Field charset = null;
+        charset = java.nio.charset.Charset.class.getDeclaredField("defaultCharset");
+        charset.setAccessible(true);
+        charset.set(null, null);
         try {
             Scanner sc = new Scanner(System.in);
 
@@ -429,22 +435,33 @@ public class App {
         try {
             cls();
             System.out.printf("\nTHÔNG TIN HÓA ĐƠN");
-            System.out.printf("\no-----------------------------------------------------------------------------------------------------------------o");
-            System.out.printf("\n| Đơn vị bán hàng  : CÔNG TY TNHH MTV THƯƠNG MẠI AKALI                                                            |");
-            System.out.printf("\n| Mã số thuế       : 0 3 1 2 3 8 8 3 6 3                                                                          |");
-            System.out.printf("\n| Địa chỉ          : 18 Tam Trinh, Hai Bà Trưng, Hà Nội                                                           |");
-            System.out.printf("\n| Điện thoại       : (+84) 987 65 432 1                                                                           |");
-            System.out.printf("\no-----------------------------------------------------------------------------------------------------------------o");
-            System.out.printf("\no-----------------------------------------------------------------------------------------------------------------o");
+            System.out.printf(
+                    "\no-----------------------------------------------------------------------------------------------------------------o");
+            System.out.printf(
+                    "\n| Đơn vị bán hàng  : CÔNG TY TNHH MTV THƯƠNG MẠI AKALI                                                            |");
+            System.out.printf(
+                    "\n| Mã số thuế       : 0 3 1 2 3 8 8 3 6 3                                                                          |");
+            System.out.printf(
+                    "\n| Địa chỉ          : 18 Tam Trinh, Hai Bà Trưng, Hà Nội                                                           |");
+            System.out.printf(
+                    "\n| Điện thoại       : (+84) 987 65 432 1                                                                           |");
+            System.out.printf(
+                    "\no-----------------------------------------------------------------------------------------------------------------o");
+            System.out.printf(
+                    "\no-----------------------------------------------------------------------------------------------------------------o");
             System.out.printf("\n| Họ tên khách hàng: %-92s |", customer.getName().toUpperCase());
             System.out.printf("\n| Email            : %-92s |", customer.getEmail());
             System.out.printf("\n| Số điện thoại    : %-92s |", customer.getPhone());
             System.out.printf("\n| Địa chỉ          : %-92s |", customer.getAddress());
             System.out.printf("\n| Ngày in          : %-92s |", order.getDate());
-            System.out.printf("\no-----------------------------------------------------------------------------------------------------------------o");
-            System.out.printf("\no-----------------------------------------------------------------------------------------------------------------o");
-            System.out.printf("\n| %-4s | %-60s | %-10s | %-10s | %-15s |", "STT", "Sản phẩm", "Giá(VNĐ)", "Số lượng", "Thành tiền(VNĐ)");
-            System.out.printf("\n|-----------------------------------------------------------------------------------------------------------------|");
+            System.out.printf(
+                    "\no-----------------------------------------------------------------------------------------------------------------o");
+            System.out.printf(
+                    "\no-----------------------------------------------------------------------------------------------------------------o");
+            System.out.printf("\n| %-4s | %-60s | %-10s | %-10s | %-15s |", "STT", "Sản phẩm", "Giá(VNĐ)", "Số lượng",
+                    "Thành tiền(VNĐ)");
+            System.out.printf(
+                    "\n|-----------------------------------------------------------------------------------------------------------------|");
             Double thanhtien = 0.0;
             Book l = new Book();
             BookBL bookBL = new BookBL();
