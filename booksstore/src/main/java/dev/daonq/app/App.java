@@ -1,9 +1,9 @@
 package dev.daonq.app;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -220,12 +220,12 @@ public class App {
                                                     }
                                                 }
                                                 if (check == 0) {
-                                                    System.out.println(
-                                                            "Rất tiếc! Chúng tôi không tìm thấy ID bạn vừa nhập.");
+                                                    System.out.println("Rất tiếc! Chúng tôi không tìm thấy ID bạn vừa nhập.");
+                                                    pressEnter(sc);
                                                 }
                                             } catch (Exception e) {
-                                                System.out
-                                                        .println("Đã có lỗi xảy ra trong quá trình cập nhật số lượng.");
+                                                System.out.println("Đã có lỗi xảy ra trong quá trình cập nhật số lượng.");
+                                                pressEnter(sc);
                                             }
                                             break;
                                         case "0":
@@ -233,6 +233,7 @@ public class App {
                                             break;
                                         default:
                                             System.out.println("Không có kết quả phù hợp với lựa chọn của bạn.");
+                                            pressEnter(sc);
                                             break;
                                     }
                                 } while (!choiceG.equals("0"));
@@ -242,6 +243,7 @@ public class App {
                             }
                         } catch (Exception e) {
                             System.out.println("Đã xảy ra lỗi trong quá trình chỉnh sửa giỏ hàng.");
+                            pressEnter(sc);
                         }
                         break;
 
@@ -252,8 +254,7 @@ public class App {
                         } else {
                             String yon;
                             do {
-                                System.out.printf(
-                                        "Bạn cần đăng nhập để thực hiện chức năng này? [1: Đăng nhập] [0: Trở về] => ");
+                                System.out.printf("Bạn cần đăng nhập để thực hiện chức năng này? [1: Đăng nhập] [0: Trở về] => ");
                                 yon = sc.nextLine();
                                 switch (yon) {
                                     case "1":
@@ -333,7 +334,7 @@ public class App {
             } while (!choice.equals("T"));
             sc.close();
         } catch (Exception e) {
-            System.out.printf("Máy chủ bị lỗi hoặc mất sóng!");
+            System.out.println("\nMáy chủ bị lỗi hoặc mất sóng!");
         }
     }
 
@@ -342,8 +343,12 @@ public class App {
         sc.nextLine();
     }
 
-    private static void cls() throws InterruptedException, IOException {
-        new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+    private static void cls(){
+        try {
+            new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+        } catch (Exception e) {
+            
+        }
     }
 
     private static void datHang(ArrayList<OrderDetail> listOrderDetails, Scanner sc, Customer customer) {
@@ -366,6 +371,7 @@ public class App {
             listOrderDetails.clear();
         } catch (Exception e) {
             System.out.println("Đã có lỗi xảy ra trong quá trình đặt hàng.");
+            pressEnter(sc);
         }
     }
 
@@ -377,11 +383,12 @@ public class App {
             ArrayList<Order> listOrders = bl.getListOrderByCustomerID(customer.getID());
             if (listOrders.size() > 0) {
                 cls();
+                DecimalFormat formater = new DecimalFormat("###,###.###");
                 ArrayList<OrderDetail> orderDetails = null;
                 System.out.printf("\nĐƠN HÀNG CỦA BẠN");
                 System.out.printf(
                         "\no----------------------------------------------------------------------------------------------------------------------------------------o");
-                System.out.printf("\n| %-5s | %-21s | %-84s | %-15s |", "ID", "Ngày đặt hàng", "Sản phẩm", "Tổng tiền");
+                System.out.printf("\n| %-5s | %-21s | %-84s | %-15s |", "ID", "Ngày đặt hàng", "Sản phẩm", "Tổng tiền(VNĐ)");
 
                 for (int i = 0; i < listOrders.size(); i++) {
                     System.out.printf(
@@ -400,7 +407,7 @@ public class App {
                         }
                     }
                     System.out.printf("\n| %-5d | %-21s | %-84s | %-15s |", listOrders.get(i).getID(),
-                            listOrders.get(i).getDate(), sanpham, listOrders.get(i).getTotalDue());
+                            listOrders.get(i).getDate(), sanpham, formater.format(listOrders.get(i).getTotalDue()));
 
                 }
                 System.out.printf(
@@ -428,12 +435,14 @@ public class App {
             }
         } catch (Exception e) {
             System.out.println("Đã xảy ra lỗi trong quá trình xem lịch sử đơn hàng.");
+            pressEnter(sc);
         }
     }
 
     private static void viewInvoice(ArrayList<OrderDetail> listOrderDetails, Customer customer, Order order) {
         try {
             cls();
+            DecimalFormat formatter = new DecimalFormat("###,###.###");
             System.out.printf("\nTHÔNG TIN HÓA ĐƠN");
             System.out.printf(
                     "\no-----------------------------------------------------------------------------------------------------------------o");
@@ -462,24 +471,23 @@ public class App {
                     "Thành tiền(VNĐ)");
             System.out.printf(
                     "\n|-----------------------------------------------------------------------------------------------------------------|");
-            Double thanhtien = 0.0;
             Book l = new Book();
             BookBL bookBL = new BookBL();
             for (int i = 0; i < listOrderDetails.size(); i++) {
                 l = bookBL.getBookByID(listOrderDetails.get(i).getBookID());
-                System.out.printf("\n| %-4d | %-60s | %-10.3f | %-10d | %-15.3f |", i, l.getTitle(), l.getPrice(),
-                        listOrderDetails.get(i).getAmount(), l.getPrice() * listOrderDetails.get(i).getAmount());
-                thanhtien = thanhtien + (l.getPrice() * listOrderDetails.get(i).getAmount());
+                System.out.printf("\n| %-4d | %-60s | %-10.3f | %-10d | %-15s |", i, l.getTitle(), l.getPrice(),
+                        listOrderDetails.get(i).getAmount(), formatter.format(l.getPrice() * listOrderDetails.get(i).getAmount()));
                 System.out.printf(
                         "\n|-----------------------------------------------------------------------------------------------------------------|");
             }
             System.out.printf(
-                    "\n|                                                                                 Tổng cộng(VNĐ): %-15.3f |",
-                    order.getTotalDue());
+                    "\n|                                                                                 Tổng cộng(VNĐ): %-15s |",
+                    formatter.format(order.getTotalDue()));
             System.out.printf(
                     "\no-----------------------------------------------------------------------------------------------------------------o\n");
         } catch (Exception e) {
             System.out.println("Đã xảy ra lỗi khi xem hóa đơn.");
+            pressEnter(new Scanner(System.in));
         }
     }
 
@@ -527,8 +535,8 @@ public class App {
 
     private static void viewOrderDetail(ArrayList<OrderDetail> listOrderDetails) {
         if (listOrderDetails.size() > 0) {
+            DecimalFormat formater = new DecimalFormat("###,###.###");
             BookBL bookBL = new BookBL();
-
             System.out.printf("\nCHI TIẾT GIỎ HÀNG");
             System.out.printf(
                     "\no-----------------------------------------------------------------------------------------------------------------o");
@@ -540,16 +548,16 @@ public class App {
                 book = bookBL.getBookByID(listOrderDetails.get(i).getBookID());
                 System.out.printf(
                         "\n|-----------------------------------------------------------------------------------------------------------------|");
-                System.out.printf("\n| %-4d | %-60s | %-10.3f | %-10d | %-15.3f |", book.getID(), book.getTitle(),
+                System.out.printf("\n| %-4d | %-60s | %-10.3f | %-10d | %-15s |", book.getID(), book.getTitle(),
                         book.getPrice(), listOrderDetails.get(i).getAmount(),
-                        book.getPrice() * listOrderDetails.get(i).getAmount());
+                        formater.format(book.getPrice() * listOrderDetails.get(i).getAmount()));
                 thanhtien += book.getPrice() * listOrderDetails.get(i).getAmount();
             }
             System.out.printf(
                     "\n|-----------------------------------------------------------------------------------------------------------------|");
             System.out.printf(
-                    "\n|                                                                                 Tổng cộng(VNĐ): %-15.3f |",
-                    thanhtien);
+                    "\n|                                                                                 Tổng cộng(VNĐ): %-15s |",
+                       formater.format(thanhtien));
             System.out.printf(
                     "\no-----------------------------------------------------------------------------------------------------------------o");
             System.out.printf("\n[1: Xóa khỏi giỏ hàng], [2: Cập nhật số lượng], [0: Trở về] => ");
@@ -601,34 +609,34 @@ public class App {
         ArrayList<Book> books = bookBL.getListBook();
         if (from == 0 && to == 10) {
             System.out.println(
-                    " TOP 100 QUYỂN SÁCH BÁN CHẠY THÁNG NÀY                                     [1] - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - 0 ");
+                    " TOP 100 QUYỂN SÁCH BÁN CHẠY NHẤT                                     [1] - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - 0 ");
         } else if (from == 10 && to == 20) {
             System.out.println(
-                    " TOP 100 QUYỂN SÁCH BÁN CHẠY THÁNG NÀY                                     1 - [2] - 3 - 4 - 5 - 6 - 7 - 8 - 9 - 0 ");
+                    " TOP 100 QUYỂN SÁCH BÁN CHẠY NHẤT                                     1 - [2] - 3 - 4 - 5 - 6 - 7 - 8 - 9 - 0 ");
         } else if (from == 20 && to == 30) {
             System.out.println(
-                    " TOP 100 QUYỂN SÁCH BÁN CHẠY THÁNG NÀY                                     1 - 2 - [3] - 4 - 5 - 6 - 7 - 8 - 9 - 0 ");
+                    " TOP 100 QUYỂN SÁCH BÁN CHẠY NHẤT                                     1 - 2 - [3] - 4 - 5 - 6 - 7 - 8 - 9 - 0 ");
         } else if (from == 30 && to == 40) {
             System.out.println(
-                    " TOP 100 QUYỂN SÁCH BÁN CHẠY THÁNG NÀY                                     1 - 2 - 3 - [4] - 5 - 6 - 7 - 8 - 9 - 0 ");
+                    " TOP 100 QUYỂN SÁCH BÁN CHẠY NHẤT                                     1 - 2 - 3 - [4] - 5 - 6 - 7 - 8 - 9 - 0 ");
         } else if (from == 40 && to == 50) {
             System.out.println(
-                    " TOP 100 QUYỂN SÁCH BÁN CHẠY THÁNG NÀY                                     1 - 2 - 3 - 4 - [5] - 6 - 7 - 8 - 9 - 0 ");
+                    " TOP 100 QUYỂN SÁCH BÁN CHẠY NHẤT                                     1 - 2 - 3 - 4 - [5] - 6 - 7 - 8 - 9 - 0 ");
         } else if (from == 50 && to == 60) {
             System.out.println(
-                    " TOP 100 QUYỂN SÁCH BÁN CHẠY THÁNG NÀY                                     1 - 2 - 3 - 4 - 5 - [6] - 7 - 8 - 9 - 0 ");
+                    " TOP 100 QUYỂN SÁCH BÁN CHẠY NHẤT                                     1 - 2 - 3 - 4 - 5 - [6] - 7 - 8 - 9 - 0 ");
         } else if (from == 60 && to == 70) {
             System.out.println(
-                    " TOP 100 QUYỂN SÁCH BÁN CHẠY THÁNG NÀY                                     1 - 2 - 3 - 4 - 5 - 6 - [7] - 8 - 9 - 0 ");
+                    " TOP 100 QUYỂN SÁCH BÁN CHẠY NHẤT                                     1 - 2 - 3 - 4 - 5 - 6 - [7] - 8 - 9 - 0 ");
         } else if (from == 70 && to == 80) {
             System.out.println(
-                    " TOP 100 QUYỂN SÁCH BÁN CHẠY THÁNG NÀY                                     1 - 2 - 3 - 4 - 5 - 6 - 7 - [8] - 9 - 0 ");
+                    " TOP 100 QUYỂN SÁCH BÁN CHẠY NHẤT                                     1 - 2 - 3 - 4 - 5 - 6 - 7 - [8] - 9 - 0 ");
         } else if (from == 80 && to == 90) {
             System.out.println(
-                    " TOP 100 QUYỂN SÁCH BÁN CHẠY THÁNG NÀY                                     1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - [9] - 0 ");
+                    " TOP 100 QUYỂN SÁCH BÁN CHẠY NHẤT                                     1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - [9] - 0 ");
         } else if (from == 90 && to == 100) {
             System.out.println(
-                    " TOP 100 QUYỂN SÁCH BÁN CHẠY THÁNG NÀY                                     1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - [0] ");
+                    " TOP 100 QUYỂN SÁCH BÁN CHẠY NHẤT                                     1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 9 - [0] ");
         }
         System.out.printf(
                 "o------o--------------------------------------------------------------o--------------------------------o------------o");
