@@ -569,7 +569,7 @@ public class App {
 
     private static void viewBookDetail(Book book) {
 
-        System.out.println("     THÔNG TIN CHI TIẾT");
+        System.out.println("\n     THÔNG TIN CHI TIẾT");
         System.out.println("     o--------------------------------o--------------------------------------------------------------o");
         System.out.printf("     | %-30s | %-60s |\n", "Tiêu đề", book.getTitle());
         System.out.println(
