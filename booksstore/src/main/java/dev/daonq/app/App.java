@@ -4,8 +4,10 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 import dev.daonq.BusinessLogic.BookBL;
 import dev.daonq.BusinessLogic.CustomerBL;
@@ -17,8 +19,8 @@ import dev.daonq.Entity.Order;
 import dev.daonq.Entity.OrderDetail;
 
 public class App {
-    public static void main(String[] args) throws NoSuchFieldException, SecurityException, IllegalArgumentException,
-            IllegalAccessException {
+    public static void main(String[] args)
+            throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
         System.setProperty("file.encoding", "UTF-8");
         java.lang.reflect.Field charset = null;
         charset = java.nio.charset.Charset.class.getDeclaredField("defaultCharset");
@@ -111,9 +113,9 @@ public class App {
                                         case "1":
                                             int amount = 0;
                                             try {
-                                                System.out.printf("     Nhập số lượng (1..20): ");
+                                                System.out.printf("     Nhập số lượng: ");
                                                 amount = Integer.parseInt(sc.nextLine());
-                                                if (amount >= 1 && amount <= 20) {
+                                                if (amount >= 1) {
                                                     if (listOrderDetails == null) {
                                                         listOrderDetails = new ArrayList<OrderDetail>();
                                                     }
@@ -122,15 +124,17 @@ public class App {
                                                         if (ID == listOrderDetails.get(i).getBookID()) {
                                                             int newAmount = listOrderDetails.get(i).getAmount()
                                                                     + amount;
-                                                            if (newAmount >= 1 && newAmount <= 20) {
+                                                            if (newAmount >= 1) {
                                                                 listOrderDetails.get(i).setAmount(
                                                                         listOrderDetails.get(i).getAmount() + amount);
                                                                 check = 1;
-                                                                System.out.println("     Thêm vào giỏ hàng thành công.");
+                                                                System.out
+                                                                        .println("     Thêm vào giỏ hàng thành công.");
                                                                 pressEnter(sc);
                                                                 choiceC = "0";
                                                             } else {
-                                                                System.out.println("     Thêm vào giỏ hàng thất bại! Cuốn sách này chỉ được mua tối đa 20 quyển.");
+                                                                System.out.println(
+                                                                        "     Thêm vào giỏ hàng thất bại! Số lượng phải lớn hơn 1.");
                                                                 pressEnter(sc);
                                                                 check = 2;
                                                                 choiceC = "0";
@@ -148,7 +152,8 @@ public class App {
                                                         choiceC = "0";
                                                     }
                                                 } else {
-                                                    System.out.println("     Thêm vào giỏ hàng thất bại! Cuốn sách này phải mua tối thiểu 1 và tối đa 20 quyển.");
+                                                    System.out.println(
+                                                            "     Thêm vào giỏ hàng thất bại! Cuốn sách này phải mua tối thiểu 1 và tối đa 20 quyển.");
                                                     pressEnter(sc);
                                                 }
                                             } catch (Exception e) {
@@ -195,35 +200,38 @@ public class App {
                                                     if (ID == listOrderDetails.get(i).getBookID()) {
                                                         listOrderDetails.remove(i);
                                                         System.out.println("     Xóa khỏi giỏ hàng thành công.");
-                                                        pressEnter(sc);
                                                         check = 1;
                                                         break;
                                                     }
                                                 }
                                                 if (check == 0) {
-                                                    System.out.println(     "Rất tiếc! Chúng tôi không tìm thấy ID bạn vừa nhập.");
+                                                    System.out.println(
+                                                            "Rất tiếc! Chúng tôi không tìm thấy ID của cuốn sách bạn vừa nhập trong giỏ hàng.");
                                                     pressEnter(sc);
                                                 } else if (check == 1 && listOrderDetails.size() == 0) {
                                                     choiceG = "0";
                                                 }
                                             } catch (Exception e) {
-                                                System.out.println("     Đã có lỗi xảy ra trong quá trình xóa khỏi giỏ hàng.");
+                                                System.out.println(
+                                                        "     Đã có lỗi xảy ra trong quá trình xóa khỏi giỏ hàng.");
                                                 pressEnter(sc);
                                             }
                                             break;
                                         case "2":
                                             try {
                                                 byte check = 0;
-                                                System.out.printf("     Nhập ID: ");
+                                                System.out.printf("     Nhập ID của sách trong giỏ hàng: ");
                                                 int ID = Integer.parseInt(sc.nextLine());
                                                 for (int i = 0; i < listOrderDetails.size(); i++) {
                                                     if (ID == listOrderDetails.get(i).getBookID()) {
-                                                        System.out.printf("     Nhập số lượng mới (1..20): ");
+                                                        System.out.printf("     Nhập số lượng mới: ");
                                                         int slm = Integer.parseInt(sc.nextLine());
-                                                        if (slm >= 1 && slm <= 20) {
+                                                        if (slm >= 1) {
                                                             listOrderDetails.get(i).setAmount(slm);
                                                             System.out.println("     Cập nhật số lượng thành công.");
-                                                            pressEnter(sc);
+                                                        } else if (slm == 0) {
+                                                            listOrderDetails.remove(i);
+                                                            System.out.println("     Xóa khỏi giỏ hàng thành công.");
                                                         } else {
                                                             System.out.println("     Cập nhật số lượng thất bại.");
                                                             pressEnter(sc);
@@ -233,11 +241,13 @@ public class App {
                                                     }
                                                 }
                                                 if (check == 0) {
-                                                    System.out.println("     Rất tiếc! Chúng tôi không tìm thấy ID bạn vừa nhập.");
+                                                    System.out.println(
+                                                            "     Rất tiếc! Chúng tôi không tìm thấy ID của cuốn sách bạn vừa nhập trong giỏ hàng.");
                                                     pressEnter(sc);
                                                 }
                                             } catch (Exception e) {
-                                                System.out.println("     Đã có lỗi xảy ra trong quá trình cập nhật số lượng.");
+                                                System.out.println(
+                                                        "     Đã có lỗi xảy ra trong quá trình cập nhật số lượng.");
                                                 pressEnter(sc);
                                             }
                                             break;
@@ -251,7 +261,7 @@ public class App {
                                     }
                                 } while (!choiceG.equals("0"));
                             } else {
-                                System.out.println("     Giỏ hàng hiện tại trống.");
+                                System.out.println("     Giỏ hàng của bạn hiện tại trống.");
                                 pressEnter(sc);
                             }
                         } catch (Exception e) {
@@ -268,7 +278,8 @@ public class App {
                             String yon;
                             do {
                                 cls();
-                                System.out.printf("\n     Bạn cần đăng nhập để thực hiện chức năng này? [1: Đăng nhập], [0: Trở về] => ");
+                                System.out.printf(
+                                        "\n     Bạn cần đăng nhập để thực hiện chức năng này? [1: Đăng nhập], [0: Trở về] => ");
                                 yon = sc.nextLine();
                                 switch (yon) {
                                     case "1":
@@ -296,42 +307,88 @@ public class App {
                         break;
 
                     case "D":
-                        cls();
-                        if (listOrderDetails.size() > 0) {
-                            if (login) {
-                                datHang(listOrderDetails, sc, customer);
-                                pressEnter(sc);
-                            } else {
-                                String yon;
-                                do {
-                                    cls();
-                                    System.out.printf("\n     Bạn cần đăng nhập để thực hiện chức năng này? [1: Đăng nhập], [0: Trở về] => ");
-                                    yon = sc.nextLine();
-                                    switch (yon) {
-                                        case "1":
-                                            customer = Login(sc);
-                                            if (customer != null) {
-                                                System.out.println("     Đăng nhập thành công.");
-                                                login = true;
-                                                datHang(listOrderDetails, sc, customer);
-                                                pressEnter(sc);
-                                                yon = "0";
-                                            } else {
-                                                System.out.println("     Đăng nhập thất bại.");
-                                                pressEnter(sc);
-                                            }
-                                            break;
-                                        case "0":
-
-                                            break;
-                                        default:
-                                            System.out.println("     Không có kết quả phù hợp với lựa chọn của bạn.");
-                                            break;
+                        try {
+                            cls();
+                            if (listOrderDetails.size() > 0) {
+                                if (login) {
+                                    System.out.println("     Đăng nhập thành công.");
+                                    login = true;
+                                    System.out.printf("     Bạn có bao nhiêu tiền: ");
+                                    Double tien = Double.parseDouble(sc.nextLine());
+                                    Double tongtien = 0.0;
+                                    for (int i = 0; i < listOrderDetails.size(); i++) {
+                                        Book book = new BookBL().getBookByID(listOrderDetails.get(i).getBookID());
+                                        tongtien += listOrderDetails.get(i).getAmount() * book.getPrice();
                                     }
-                                } while (!yon.equals("0"));
+                                    if (tien >= tongtien) {
+                                        datHang(listOrderDetails, sc, customer);
+                                    } else {
+                                        System.out.println("     Bạn không đủ tiền mà đòi mua à!");
+                                    }
+                                    pressEnter(sc);
+                                } else {
+                                    String yon;
+                                    do {
+                                        cls();
+                                        System.out.printf(
+                                                "\n     Bạn cần đăng nhập để thực hiện chức năng này? [1: Đăng nhập], [0: Trở về] => ");
+                                        yon = sc.nextLine();
+                                        switch (yon) {
+                                            case "1":
+                                                customer = Login(sc);
+                                                if (customer != null) {
+                                                    System.out.println("     Đăng nhập thành công.");
+                                                    login = true;
+                                                    System.out.printf("     Bạn có bao nhiêu tiền: ");
+                                                    Double tien = Double.parseDouble(sc.nextLine());
+                                                    Double tongtien = 0.0;
+                                                    for (int i = 0; i < listOrderDetails.size(); i++) {
+                                                        Book book = new BookBL()
+                                                                .getBookByID(listOrderDetails.get(i).getBookID());
+                                                        tongtien += listOrderDetails.get(i).getAmount()
+                                                                * book.getPrice();
+                                                    }
+                                                    if (tien >= tongtien) {
+                                                        datHang(listOrderDetails, sc, customer);
+                                                    } else {
+                                                        System.out.println("     Bạn không đủ tiền mà đòi mua à!");
+                                                    }
+                                                    pressEnter(sc);
+                                                    yon = "0";
+                                                } else {
+                                                    System.out.println("     Đăng nhập thất bại.");
+                                                    pressEnter(sc);
+                                                }
+                                                break;
+                                            case "0":
+
+                                                break;
+                                            default:
+                                                System.out
+                                                        .println("     Không có kết quả phù hợp với lựa chọn của bạn.");
+                                                break;
+                                        }
+                                    } while (!yon.equals("0"));
+                                }
+                            } else {
+                                System.out.println("     Không thể đặt hàng vì giỏ hàng trống.");
+                                pressEnter(sc);
                             }
+
+                        } catch (Exception e) {
+                            System.out.println("Bạn nhập tiền bị sai định dạnh của hệ thống rồi.");
+                        }
+                        break;
+
+                    case "S":
+                        System.out.printf("     Nhập tên sách: ");
+                        String search = sc.nextLine();
+                        Book book = searching(search);
+                        if (book != null) {
+                            viewBookDetail(book);
+                            pressEnter(sc);
                         } else {
-                            System.out.println("     Không thể đặt hàng vì giỏ hàng trống.");
+                            System.out.println("     Không có kết quả phù hợp với từ khóa tìm kiếm của bạn.");
                             pressEnter(sc);
                         }
                         break;
@@ -352,16 +409,41 @@ public class App {
         }
     }
 
+    private static Book searching(String search) {
+        ArrayList<Book> listBooks = new BookBL().getListBook();
+        Book listBooked = null;
+        search = search.toLowerCase();
+        for (int i = 0; i < listBooks.size(); i++) {
+            if ((covertToString(listBooks.get(i).getTitle().toLowerCase()).contains(search))) {
+                listBooked = new Book();
+                listBooked = listBooks.get(i);
+                break;
+            }
+        }
+        return listBooked;
+    }
+
+    public static String covertToString(String value) {
+        try {
+            String temp = Normalizer.normalize(value, Normalizer.Form.NFD);
+            Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+            return pattern.matcher(temp).replaceAll("").replaceAll("đ", "d");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
     private static void pressEnter(Scanner sc) {
         System.out.printf("\n     Nhấn Enter để tiếp tục...");
         sc.nextLine();
     }
 
-    private static void cls(){
+    private static void cls() {
         try {
             new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
         } catch (Exception e) {
-            
+
         }
     }
 
@@ -397,14 +479,17 @@ public class App {
             ArrayList<Order> listOrders = bl.getListOrderByCustomerID(customer.getID());
             if (listOrders.size() > 0) {
                 cls();
-                DecimalFormat formater = new DecimalFormat("###,###.###");
+                DecimalFormat formater = new DecimalFormat("###,###,###.000");
                 ArrayList<OrderDetail> orderDetails = null;
                 System.out.printf("\n     ĐƠN HÀNG CỦA BẠN");
-                System.out.printf("\n     o----------------------------------------------------------------------------------------------------------------------------------------o");
-                System.out.printf("\n     | %-5s | %-21s | %-84s | %-15s |", "ID", "Ngày đặt hàng", "Sản phẩm", "Tổng tiền(VNĐ)");
+                System.out.printf(
+                        "\n     o----------------------------------------------------------------------------------------------------------------------------------------o");
+                System.out.printf("\n     | %-5s | %-21s | %-84s | %-15s |", "ID", "Ngày đặt hàng", "Sản phẩm",
+                        "Tổng tiền(VNĐ)");
 
                 for (int i = 0; i < listOrders.size(); i++) {
-                    System.out.printf("\n     |----------------------------------------------------------------------------------------------------------------------------------------|");
+                    System.out.printf(
+                            "\n     |----------------------------------------------------------------------------------------------------------------------------------------|");
                     orderDetails = orderDetailBL.getListOrderDetailByOrderID(listOrders.get(i).getID());
                     String sanpham = "";
                     if (orderDetails.size() > 1) {
@@ -420,9 +505,9 @@ public class App {
                     }
                     System.out.printf("\n     | %-5d | %-21s | %-84s | %-15s |", listOrders.get(i).getID(),
                             listOrders.get(i).getDate(), sanpham, formater.format(listOrders.get(i).getTotalDue()));
-
                 }
-                System.out.printf("\n     o----------------------------------------------------------------------------------------------------------------------------------------o");
+                System.out.printf(
+                        "\n     o----------------------------------------------------------------------------------------------------------------------------------------o");
 
                 byte check = 0;
                 System.out.printf("\n     Nhập ID: ");
@@ -455,28 +540,40 @@ public class App {
             cls();
             DecimalFormat formatter = new DecimalFormat("###,###,###.000");
             System.out.printf("\n     THÔNG TIN HÓA ĐƠN");
-            System.out.printf("\n     o-----------------------------------------------------------------------------------------------------------------o");
-            System.out.printf("\n     | Đơn vị bán hàng  : CÔNG TY TNHH MTV THƯƠNG MẠI AKALI                                                            |");
-            System.out.printf("\n     | Mã số thuế       : 0 3 1 2 3 8 8 3 6 3                                                                          |");
-            System.out.printf("\n     | Địa chỉ          : 18 Tam Trinh, Hai Bà Trưng, Hà Nội                                                           |");
-            System.out.printf("\n     | Điện thoại       : (+84) 987 65 432 1                                                                           |");
-            System.out.printf("\n     o-----------------------------------------------------------------------------------------------------------------o");
-            System.out.printf("\n     o-----------------------------------------------------------------------------------------------------------------o");
+            System.out.printf(
+                    "\n     o-----------------------------------------------------------------------------------------------------------------o");
+            System.out.printf(
+                    "\n     | Đơn vị bán hàng  : CÔNG TY TNHH MTV THƯƠNG MẠI AKALI                                                            |");
+            System.out.printf(
+                    "\n     | Mã số thuế       : 0 3 1 2 3 8 8 3 6 3                                                                          |");
+            System.out.printf(
+                    "\n     | Địa chỉ          : 18 Tam Trinh, Hai Bà Trưng, Hà Nội                                                           |");
+            System.out.printf(
+                    "\n     | Điện thoại       : (+84) 987 65 432 1                                                                           |");
+            System.out.printf(
+                    "\n     o-----------------------------------------------------------------------------------------------------------------o");
+            System.out.printf(
+                    "\n     o-----------------------------------------------------------------------------------------------------------------o");
             System.out.printf("\n     | Họ tên khách hàng: %-92s |", customer.getName().toUpperCase());
             System.out.printf("\n     | Email            : %-92s |", customer.getEmail());
             System.out.printf("\n     | Số điện thoại    : %-92s |", customer.getPhone());
             System.out.printf("\n     | Địa chỉ giao hàng: %-92s |", customer.getAddress());
             System.out.printf("\n     | Ngày mua hàng    : %-92s |", order.getDate());
-            System.out.printf("\n     o-----------------------------------------------------------------------------------------------------------------o");
-            System.out.printf("\n     o-----------------------------------------------------------------------------------------------------------------o");
-            System.out.printf("\n     | %-4s | %-60s | %-10s | %-10s | %-15s |", "STT", "Sản phẩm", "Giá(VNĐ)", "Số lượng", "Thành tiền(VNĐ)");
-            System.out.printf("\n     |-----------------------------------------------------------------------------------------------------------------|");
+            System.out.printf(
+                    "\n     o-----------------------------------------------------------------------------------------------------------------o");
+            System.out.printf(
+                    "\n     o-----------------------------------------------------------------------------------------------------------------o");
+            System.out.printf("\n     | %-4s | %-60s | %-10s | %-10s | %-15s |", "STT", "Sản phẩm", "Giá(VNĐ)",
+                    "Số lượng", "Thành tiền(VNĐ)");
+            System.out.printf(
+                    "\n     |-----------------------------------------------------------------------------------------------------------------|");
             Book l = new Book();
             BookBL bookBL = new BookBL();
             for (int i = 0; i < listOrderDetails.size(); i++) {
                 l = bookBL.getBookByID(listOrderDetails.get(i).getBookID());
                 System.out.printf("\n     | %-4d | %-60s | %-10.3f | %-10d | %-15s |", i, l.getTitle(), l.getPrice(),
-                        listOrderDetails.get(i).getAmount(), formatter.format(l.getPrice() * listOrderDetails.get(i).getAmount()));
+                        listOrderDetails.get(i).getAmount(),
+                        formatter.format(l.getPrice() * listOrderDetails.get(i).getAmount()));
                 System.out.printf(
                         "\n     |-----------------------------------------------------------------------------------------------------------------|");
             }
@@ -493,7 +590,7 @@ public class App {
 
     private static Customer Login(Scanner sc) {
         System.out.printf("\n     ĐĂNG NHẬP\n");
-                                  System.out.printf("     Email   : ");
+        System.out.printf("     Email   : ");
         String Email = sc.nextLine();
         java.io.Console console = System.console();
         char[] passwordArray = console.readPassword("     Mật khẩu: ");
@@ -538,27 +635,26 @@ public class App {
             DecimalFormat formater = new DecimalFormat("###,###,###.000");
             BookBL bookBL = new BookBL();
             System.out.printf("\n     CHI TIẾT GIỎ HÀNG");
-            System.out.printf("\n     o-----------------------------------------------------------------------------------------------------------------o");
-            System.out.printf("\n     | %-4s | %-60s | %-10s | %-10s | %-15s |", "ID", "Tên sách", "Giá(VNĐ)", "Số lượng", "Thành tiền(VNĐ)");
+            System.out.printf(
+                    "\n     o-----------------------------------------------------------------------------------------------------------------o");
+            System.out.printf("\n     | %-4s | %-60s | %-10s | %-10s | %-15s |", "ID", "Tên sách", "Giá(VNĐ)",
+                    "Số lượng", "Thành tiền(VNĐ)");
             Book book = null;
             Double thanhtien = 0.0;
             for (int i = 0; i < listOrderDetails.size(); i++) {
                 book = bookBL.getBookByID(listOrderDetails.get(i).getBookID());
                 Double tamtinh = book.getPrice() * listOrderDetails.get(i).getAmount();
-                System.out.printf("\n     |-----------------------------------------------------------------------------------------------------------------|");
-                System.out.printf("\n     | %-4d | %-60s | %-10.3f | %-10d | %-15s |",
-                                                book.getID(),
-                                                book.getTitle(),
-                                                book.getPrice(), 
-                                                listOrderDetails.get(i).getAmount(),
-                                                formater.format(tamtinh));
+                System.out.printf(
+                        "\n     |-----------------------------------------------------------------------------------------------------------------|");
+                System.out.printf("\n     | %-4d | %-60s | %-10.3f | %-10d | %-15s |", book.getID(), book.getTitle(),
+                        book.getPrice(), listOrderDetails.get(i).getAmount(), formater.format(tamtinh));
                 thanhtien += book.getPrice() * listOrderDetails.get(i).getAmount();
             }
             System.out.printf(
                     "\n     |-----------------------------------------------------------------------------------------------------------------|");
             System.out.printf(
                     "\n     |                                                                                 Tổng cộng(VNĐ): %-15s |",
-                       formater.format(thanhtien));
+                    formater.format(thanhtien));
             System.out.printf(
                     "\n     o-----------------------------------------------------------------------------------------------------------------o");
             System.out.printf("\n     [1: Xóa khỏi giỏ hàng], [2: Cập nhật số lượng], [0: Trở về] => ");
@@ -570,7 +666,8 @@ public class App {
     private static void viewBookDetail(Book book) {
 
         System.out.println("\n     THÔNG TIN CHI TIẾT");
-        System.out.println("     o--------------------------------o--------------------------------------------------------------o");
+        System.out.println(
+                "     o--------------------------------o--------------------------------------------------------------o");
         System.out.printf("     | %-30s | %-60s |\n", "Tiêu đề", book.getTitle());
         System.out.println(
                 "     |--------------------------------|--------------------------------------------------------------|");
@@ -646,8 +743,8 @@ public class App {
         for (int i = from; i < to; i++) {
             System.out.printf(
                     "     |------|--------------------------------------------------------------|--------------------------------|------------|");
-            System.out.printf("\n     | %-4d | %-60s | %-30s | %-10.3f |\n", books.get(i).getID(), books.get(i).getTitle(),
-                    books.get(i).getAuthor(), books.get(i).getPrice());
+            System.out.printf("\n     | %-4d | %-60s | %-30s | %-10.3f |\n", books.get(i).getID(),
+                    books.get(i).getTitle(), books.get(i).getAuthor(), books.get(i).getPrice());
 
         }
         System.out.printf(
